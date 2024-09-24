@@ -1,0 +1,7 @@
+llamamt_enabled (Enable LLamaMT) bool true
+llamamt_name (LLama displayed name in the chat) string [AI] LLama
+llamamt_address (LLama server address) string 127.0.0.1
+llamamt_port (LLama server port) string 11434
+llamamt_prefix (LLama chat prefix) string !
+llamamt_color (LLama responses color) string #aef
+llamamt_newlines (Allow newlines in LLama responses) bool false
