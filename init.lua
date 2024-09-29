@@ -1,15 +1,6 @@
 local s = minetest.get_mod_storage()
 local st = minetest.settings
 
-local ai_name = st:get("llamamt_name") or "[AI] LLama"
-local addr = st:get("llamamt_address") or "127.0.0.1"
-local port = st:get("llamamt_port") or "11434"
-local prefix = st:get("llamamt_prefix") or "!"
-local color = st:get("llamamt_color") or "#aef"
-local newlines = st:get_bool("llamamt_newlines", false)
-
-local enabled = st:get_bool("llamamt_enabled", true)
-
 local http = minetest.request_http_api()
 
 if not http then
@@ -21,10 +12,10 @@ end
 function askllama(msg, callback, with_context)
 	if not msg then return end
 	http.fetch({
-		url = "http://"..addr..":"..port.."/api/generate",
+		url = "http://"..(st:get("llamamt_address") or "127.0.0.1")..":"..(st:get("llamamt_port") or "11434").."/api/generate",
 		method = "POST",
 		extra_headers = {"Content-Type: application/json"},
-		data = '{"model":"llama3.1","prompt":'..
+		data = '{"model":"'..(st:get("llamamt_model") or 'llama3.1')..'","prompt":'..
 			minetest.write_json(minetest.strip_colors(msg))..
 			(with_context and s:get("context") and ',"context":['..s:get("context")..']' or '')..'}'
 	},
@@ -47,12 +38,12 @@ end
 
 local function reset()
 	s:set_string("context", "")
-	local msg = "You have to answer in the single line ALWAYS. NO NEWLINES ALLOWED. "..
-		"ALL following prompts are consist of username and their prompt: `<username> prompt`. "..
-		"THIS APPLIES TO ALL PROMPT LANGUAGES! Answer to each prompt on it's language!"
-	askllama(msg, function(answer)
-		minetest.log("action","LLama has been reset ("..answer..")")
-	end)
+	local init_prompt = st:get("llamamt_init_prompt")
+	if init_prompt then
+		askllama(init_prompt, function(answer)
+			minetest.log("action","LLama has been reset ("..answer..")")
+		end, true)
+	end
 end
 
 minetest.register_chatcommand("askllama",{
@@ -64,6 +55,7 @@ minetest.register_chatcommand("askllama",{
 		end
 		if enabled then
 			askllama(param, function(answer)
+				local color = st:get("llamamt_color") or "#aef"
 				minetest.chat_send_player(name, minetest.colorize(color, "DM from "..ai_name..": ", answer))
 			end)
 		else
@@ -85,6 +77,9 @@ minetest.register_chatcommand("togglellama",{
 	func = function(name, param)
 		enabled = not enabled
 		st:set_bool("llamamt_enabled", enabled)
+		if not s:get("context") then
+			reset()
+		end
 		return true, "LLama has been "..(enabled and "enabled" or "disabled")
 end})
 
@@ -98,6 +93,7 @@ local callwords = {
 local function llama_on_chat_msg(name, msg)
 	if not enabled or msg:sub(1,1) == "/" then return end
 	local reply
+	local prefix = st:get("llamamt_prefix") or "!"
 	if msg:match("^"..prefix.."%S+") then
 		msg = msg:sub(#prefix+1)
 		reply = true
@@ -111,10 +107,11 @@ local function llama_on_chat_msg(name, msg)
 	end
 	if reply then
 		askllama("<"..name.."> "..msg, function(answer)	
-			if not newlines then
+			if not st:get_bool("llamamt_newlines", false) then
 				answer = answer:gsub("\n"," ")
 			end
-			minetest.chat_send_all(minetest.colorize(color, minetest.format_chat_message(ai_name, answer)))
+			local color = st:get("llamamt_color") or "#aef"
+			minetest.chat_send_all(minetest.colorize(color, minetest.format_chat_message((st:get("llamamt_name") or "[AI] LLama"), answer)))
 		end, true)
 	end
 end

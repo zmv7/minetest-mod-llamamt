@@ -1,7 +1,9 @@
 llamamt_enabled (Enable LLamaMT) bool true
 llamamt_name (LLama displayed name in the chat) string [AI] LLama
+llamamt_model (LLama model) string llama3.1
 llamamt_address (LLama server address) string 127.0.0.1
 llamamt_port (LLama server port) string 11434
 llamamt_prefix (LLama chat prefix) string !
 llamamt_color (LLama responses color) string #aef
 llamamt_newlines (Allow newlines in LLama responses) bool false
+llamamt_init_prompt (LLama initial prompt) string You have to answer in the single line ALWAYS. NO NEWLINES ALLOWED. ALL following prompts are consist of username and their prompt: `<username> prompt`. THIS APPLIES TO ALL PROMPT LANGUAGES! Answer to each prompt on it's language!
