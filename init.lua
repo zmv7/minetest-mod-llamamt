@@ -1,5 +1,6 @@
 local s = minetest.get_mod_storage()
 local st = minetest.settings
+local enabled = st:get_bool("llamamt_enabled", true)
 
 local http = minetest.request_http_api()
 
